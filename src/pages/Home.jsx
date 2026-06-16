@@ -204,9 +204,52 @@ const Home = () => {
         )}
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 space-y-4">
-            <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
-            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Fetching articles...</p>
+          <div className="space-y-12 w-full animate-pulse">
+            {/* Hero Card Skeleton */}
+            <div className="w-full h-[440px] bg-gray-50 rounded-3xl p-8 md:p-14 flex flex-col justify-center gap-6 border border-gray-100">
+              <div className="h-4 bg-gray-200 rounded w-32" />
+              <div className="space-y-3">
+                <div className="h-8 bg-gray-200 rounded w-3/4" />
+                <div className="h-8 bg-gray-200 rounded w-1/2" />
+              </div>
+              <div className="h-4 bg-gray-200 rounded w-2/3" />
+              <div className="flex items-center gap-4 pt-4">
+                <div className="w-10 h-10 rounded-full bg-gray-200" />
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-24" />
+                  <div className="h-3 bg-gray-200 rounded w-16" />
+                </div>
+              </div>
+            </div>
+
+            {/* Tabs Filter Skeleton */}
+            <div className="border-b border-gray-100 pb-2 flex gap-3 overflow-hidden">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="h-9 bg-gray-100 rounded-full w-24 shrink-0" />
+              ))}
+            </div>
+
+            {/* Grid Cards Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="space-y-4 bg-white rounded-2xl p-4 border border-gray-100/50">
+                  <div className="w-full aspect-video bg-gray-100 rounded-xl" />
+                  <div className="h-4 bg-gray-250 rounded w-1/4" />
+                  <div className="h-6 bg-gray-200 rounded w-5/6" />
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                    <div className="h-4 bg-gray-200 rounded w-2/3" />
+                  </div>
+                  <div className="flex items-center gap-3 pt-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-100" />
+                    <div className="space-y-1.5 flex-1">
+                      <div className="h-3 bg-gray-200 rounded w-20" />
+                      <div className="h-2.5 bg-gray-200 rounded w-12" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <>
