@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Search, ArrowUpRight, Rss, Loader2, AlertTriangle, ArrowRight, Instagram, Twitter, Linkedin } from 'lucide-react';
+import { BookOpen, Search, ArrowUpRight, Rss, Loader2, AlertTriangle, ArrowRight, Instagram, Twitter, Linkedin, Menu, X } from 'lucide-react';
 import api from '../api';
 
 const CATEGORIES = [
@@ -19,6 +19,7 @@ const Home = () => {
   const [error, setError] = useState('');
   const [activeCategory, setActiveCategory] = useState('All articles');
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const fetchPosts = async () => {
     try {
@@ -108,14 +109,15 @@ const Home = () => {
       {/* ── HEADER ── */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-[1200px] mx-auto px-6 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 py-2 group">
-            <img src="/kasi.png" alt="Kasi Logo" className="h-9 w-auto object-contain" />
-            <span className="text-2xl font-extrabold tracking-tight text-gray-900 font-sans select-none">
+          <Link to="/" className="flex items-center gap-2 py-2 group">
+            <img src="/kasi.png" alt="Kasi Logo" className="h-8 md:h-9 w-auto object-contain" />
+            <span className="text-xl md:text-2xl font-extrabold tracking-tight text-gray-900 font-sans select-none">
               kasi <span className="text-emerald-600 font-medium">blog</span>
             </span>
           </Link>
 
-          <nav className="flex items-center gap-8 text-sm font-semibold text-gray-600">
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-600">
             <a href="https://usekasi.com" className="hover:text-emerald-600 transition-colors flex items-center gap-0.5">
               Visit Kasi <ArrowUpRight size={13} />
             </a>
@@ -132,7 +134,50 @@ const Home = () => {
               Start Free Trial
             </a>
           </nav>
+
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-gray-650 hover:text-black focus:outline-none transition-colors"
+            aria-label="Toggle Menu"
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div className="md:hidden fixed inset-x-0 top-20 bg-white border-b border-gray-150 shadow-xl z-40 py-6 px-6 flex flex-col gap-4 animate-in slide-in-from-top duration-200">
+            <a 
+              href="https://usekasi.com" 
+              className="text-gray-650 hover:text-emerald-650 font-bold text-base py-2 flex items-center gap-1 border-b border-gray-50"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Visit Kasi <ArrowUpRight size={14} />
+            </a>
+            <a 
+              href="https://usekasi.com/pricing" 
+              className="text-gray-650 hover:text-emerald-650 font-bold text-base py-2 border-b border-gray-50"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Pricing
+            </a>
+            <a 
+              href="https://usekasi.com/login" 
+              className="text-gray-650 hover:text-emerald-650 font-bold text-base py-2 border-b border-gray-50"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Sign In
+            </a>
+            <a 
+              href="https://usekasi.com/signup" 
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-full font-bold text-center mt-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Start Free Trial
+            </a>
+          </div>
+        )}
       </header>
 
       {/* ── MAIN CONTENT ── */}
