@@ -212,6 +212,19 @@ const ArticleDetail = () => {
     }
   }, [post]);
 
+  useEffect(() => {
+    const handleExternalLinks = () => {
+      const links = document.querySelectorAll('a[href^="https://usekasi.com"]');
+      links.forEach(link => {
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+      });
+    };
+    handleExternalLinks();
+    const timer = setTimeout(handleExternalLinks, 500);
+    return () => clearTimeout(timer);
+  }, [post]);
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
@@ -398,10 +411,14 @@ const ArticleDetail = () => {
               </div>
             )}
 
-            {/* Markdown rendered body */}
+            {/* HTML or Markdown rendered body */}
             <article 
               className="prose max-w-none text-gray-700 select-text"
-              dangerouslySetInnerHTML={{ __html: parseMarkdown(post.content) }}
+              dangerouslySetInnerHTML={{ 
+                __html: (post.content && post.content.trim().startsWith('<')) 
+                  ? post.content 
+                  : parseMarkdown(post.content) 
+              }}
             />
 
             {/* ── RELATED ARTICLES ("More blog posts to read") ── */}
@@ -452,7 +469,7 @@ const ArticleDetail = () => {
                   href="https://usekasi.com/signup" 
                   className="inline-flex items-center gap-2 bg-white hover:bg-green-50 text-[#1A7A4A] font-black px-6 py-3.5 rounded-full shadow-md transition-all hover:scale-[1.02] text-sm border border-black cursor-pointer"
                 >
-                  Create Your Kasi Storefront <ArrowRight size={16} className="stroke-[3]" />
+                  Get Started with Kasi <ArrowRight size={16} className="stroke-[3]" />
                 </a>
               </div>
             </div>
