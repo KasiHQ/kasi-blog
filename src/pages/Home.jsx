@@ -348,7 +348,7 @@ const Home = () => {
                   ))}
                 </div>
                 
-                <a href="https://usekasi.com/blog/feed" className="text-gray-400 hover:text-black transition-colors pb-1.5" title="RSS Feed">
+                <a href="/feed" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-black transition-colors pb-1.5" title="RSS Feed">
                   <Rss size={16} />
                 </a>
               </div>
