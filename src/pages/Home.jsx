@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Calendar, Clock, ArrowRight, Rss, Loader2, AlertTriangle, ArrowUpRight, Search, Menu, X } from 'lucide-react';
+import { BookOpen, Search, ArrowUpRight, Rss, Loader2, AlertTriangle, ArrowRight, Instagram, Twitter, Linkedin } from 'lucide-react';
 import api from '../api';
 
 const CATEGORIES = [
@@ -19,13 +19,11 @@ const Home = () => {
   const [error, setError] = useState('');
   const [activeCategory, setActiveCategory] = useState('All articles');
   const [searchQuery, setSearchQuery] = useState('');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const fetchPosts = async () => {
     try {
       setLoading(true);
       setError('');
-      // Fetch public posts
       const res = await api.get('/api/blog/posts');
       setPosts(res.data);
     } catch (err) {
@@ -35,11 +33,51 @@ const Home = () => {
     }
   };
 
+  const updateMetaTags = (metadata) => {
+    const { title, description, url, image, type = 'website' } = metadata;
+    document.title = title;
+    
+    const setMeta = (attrName, attrValue, content) => {
+      if (!content) return;
+      let element = document.querySelector(`meta[${attrName}="${attrValue}"]`);
+      if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute(attrName, attrValue);
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+
+    setMeta('name', 'description', description);
+    setMeta('property', 'og:title', title);
+    setMeta('property', 'og:description', description);
+    setMeta('property', 'og:image', image);
+    setMeta('property', 'og:url', url);
+    setMeta('property', 'og:type', type);
+    setMeta('name', 'twitter:title', title);
+    setMeta('name', 'twitter:description', description);
+    setMeta('name', 'twitter:image', image);
+    setMeta('name', 'twitter:url', url);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', url);
+  };
+
   useEffect(() => {
     fetchPosts();
+    updateMetaTags({
+      title: "Kasi Blog - AI & Social Commerce in Africa",
+      description: "Read tutorials, vendor success stories, founder updates, and thought leadership on AI and social commerce in Africa from the Kasi team.",
+      url: window.location.href,
+      image: `${window.location.origin}/kasi.png`
+    });
   }, []);
 
-  // Filter posts based on category and search query
   const filteredPosts = posts.filter(post => {
     const matchesCategory = activeCategory === 'All articles' || 
       post.category.toLowerCase() === activeCategory.toLowerCase();
@@ -65,110 +103,78 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 flex flex-col antialiased">
+    <div className="min-h-screen bg-white text-gray-900 font-sans tracking-tight antialiased flex flex-col">
       
       {/* ── HEADER ── */}
-      <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-900 transition-colors">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src="/kasi-blog.png" alt="Kasi Blog" className="h-9 w-auto" onError={(e) => { e.target.src = '/kasi.png'; }} />
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+        <div className="max-w-[1200px] mx-auto px-6 h-20 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5 py-2 group">
+            <img src="/kasi.png" alt="Kasi Logo" className="h-9 w-auto object-contain" />
+            <span className="text-2xl font-extrabold tracking-tight text-gray-900 font-sans select-none">
+              kasi <span className="text-emerald-600 font-medium">blog</span>
+            </span>
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-600 dark:text-gray-300">
-            <a href="https://usekasi.com" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center gap-0.5">
-              Main Site <ArrowUpRight size={13} />
+          <nav className="flex items-center gap-8 text-sm font-semibold text-gray-600">
+            <a href="https://usekasi.com" className="hover:text-emerald-600 transition-colors flex items-center gap-0.5">
+              Visit Kasi <ArrowUpRight size={13} />
             </a>
-            <a href="https://usekasi.com/pricing" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+            <a href="https://usekasi.com/pricing" className="hover:text-emerald-600 transition-colors">
               Pricing
             </a>
-            <a href="https://usekasi.com/login" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+            <a href="https://usekasi.com/login" className="hover:text-emerald-600 transition-colors">
               Sign In
             </a>
             <a 
               href="https://usekasi.com/signup" 
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-100 dark:shadow-none hover:scale-[1.02] font-bold text-center"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-full transition-all hover:scale-[1.02] font-bold text-center"
             >
               Start Free Trial
             </a>
           </nav>
-
-          {/* Mobile menu button */}
-          <button 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
-          >
-            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
         </div>
-
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-150 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 space-y-4 animate-in slide-in-from-top-4 duration-200">
-            <a href="https://usekasi.com" className="block text-base font-semibold text-gray-700 dark:text-gray-200 py-2">
-              Main Site
-            </a>
-            <a href="https://usekasi.com/pricing" className="block text-base font-semibold text-gray-700 dark:text-gray-200 py-2">
-              Pricing
-            </a>
-            <a href="https://usekasi.com/login" className="block text-base font-semibold text-gray-700 dark:text-gray-200 py-2">
-              Sign In
-            </a>
-            <a 
-              href="https://usekasi.com/signup" 
-              className="block bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl text-center font-bold"
-            >
-              Start Free Trial
-            </a>
-          </div>
-        )}
       </header>
 
-      {/* ── CORE WRAPPER ── */}
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-10 w-full space-y-12">
+      {/* ── MAIN CONTENT ── */}
+      <main className="flex-1 max-w-[1200px] mx-auto px-6 py-10 w-full space-y-12">
         
-        {/* Error notification */}
         {error && (
-          <div className="p-5 bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-400 rounded-2xl flex items-center gap-3 border border-red-100 dark:border-red-900/20 max-w-2xl mx-auto">
+          <div className="p-5 bg-red-50 text-red-700 rounded-2xl flex items-center gap-3 border border-red-100 max-w-2xl mx-auto">
             <AlertTriangle className="shrink-0" size={20} />
-            <div>
-              <span className="font-bold">Error:</span> {error}
-            </div>
+            <p className="text-sm font-medium">{error}</p>
           </div>
         )}
 
-        {/* Loading Spinner */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-4">
             <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
-            <p className="text-sm text-gray-500 font-semibold uppercase tracking-wider">Fetching articles...</p>
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Fetching articles...</p>
           </div>
         ) : (
           <>
-            {/* ── HERO POST (MINTLIFY COVER POST STYLE) ── */}
+            {/* ── HERO POST (exactly matched to mockups) ── */}
             {heroPost && (
               <Link 
                 to={`/article/${heroPost.slug}`}
-                className="group block relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-emerald-950/10 hover:scale-[1.005]"
+                className="group block relative rounded-3xl overflow-hidden shadow-xl transition-all duration-500 hover:shadow-2xl hover:scale-[1.002]"
               >
-                {/* Background Gradient & Pattern */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-gray-950 via-gray-900 to-emerald-950 z-0" />
+                {/* Background Glow Design */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-gray-950 via-gray-900 to-emerald-950" />
                 
-                {/* Visual Accent/Artwork inside Card */}
                 {heroPost.featured_image && (
-                  <div className="absolute inset-y-0 right-0 w-full md:w-1/2 opacity-25 md:opacity-50 z-0 md:bg-cover md:bg-center" style={{ backgroundImage: `url(${heroPost.featured_image})` }}>
+                  <div className="absolute inset-y-0 right-0 w-full md:w-1/2 opacity-20 md:opacity-40 bg-cover bg-center" style={{ backgroundImage: `url(${heroPost.featured_image})` }}>
                     <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/80 to-transparent" />
                   </div>
                 )}
                 
-                {/* Card Content Grid */}
-                <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 p-8 md:p-14 min-h-[420px] items-center">
-                  <div className="space-y-6">
+                {/* Content Overlay */}
+                <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 p-8 md:p-14 min-h-[440px] items-center">
+                  <div className="md:col-span-7 space-y-6">
                     {/* Meta Info */}
-                    <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-emerald-400">
-                      <span className="px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20">{heroPost.category}</span>
-                      <span className="text-gray-400">•</span>
-                      <span className="text-gray-400">{heroPost.read_time} min read</span>
+                    <div className="flex items-center gap-2.5 text-xs font-semibold text-gray-400">
+                      <span>{formatDate(heroPost.published_at || heroPost.created_at)}</span>
+                      <span>•</span>
+                      <span>{heroPost.read_time} min read</span>
                     </div>
 
                     {/* Title */}
@@ -178,136 +184,126 @@ const Home = () => {
 
                     {/* Summary Snippet */}
                     {heroPost.summary && (
-                      <p className="text-gray-300 dark:text-gray-400 leading-relaxed text-sm md:text-base line-clamp-3">
+                      <p className="text-gray-300 leading-relaxed text-sm md:text-base line-clamp-3 font-medium">
                         {heroPost.summary}
                       </p>
                     )}
 
-                    {/* Author Metadata */}
-                    <div className="flex items-center gap-3.5 pt-4 border-t border-white/10">
+                    {/* Author Row */}
+                    <div className="flex items-center gap-3.5 pt-4">
                       {heroPost.author_image ? (
-                        <img src={heroPost.author_image} alt={heroPost.author_name} className="w-10 h-10 rounded-full border border-white/20 object-cover" />
+                        <img src={heroPost.author_image} alt={heroPost.author_name} className="w-10 h-10 rounded-full border border-white/10 object-cover" />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-300 border border-emerald-500/30">
                           {heroPost.author_name.charAt(0)}
                         </div>
                       )}
                       <div>
-                        <p className="text-sm font-bold text-white">{heroPost.author_name}</p>
-                        <p className="text-xs text-gray-400">{heroPost.author_role}</p>
+                        <p className="text-sm font-bold text-white leading-none">{heroPost.author_name}</p>
+                        <p className="text-xs text-gray-400 mt-1">{heroPost.author_role}</p>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Decorative raised graphic container mimicking mockups */}
-                  <div className="hidden md:flex justify-center items-center h-full relative pl-6">
+                  {/* raised mockup card layout */}
+                  <div className="md:col-span-5 hidden md:flex justify-end items-center pl-6 h-full">
                     {heroPost.featured_image ? (
-                      <div className="w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border border-white/10 transform translate-x-4 rotate-1 group-hover:translate-x-0 group-hover:rotate-0 transition-all duration-500">
-                        <img src={heroPost.featured_image} alt="Featured graphics" className="w-full aspect-video object-cover" />
+                      <div className="w-full max-w-[340px] rounded-2xl overflow-hidden shadow-2xl border border-white/10 transform translate-x-4 rotate-1 group-hover:translate-x-0 group-hover:rotate-0 transition-all duration-500">
+                        <img src={heroPost.featured_image} alt="Featured cover" className="w-full aspect-video object-cover" />
                       </div>
                     ) : (
-                      <div className="w-64 h-64 rounded-full bg-gradient-to-tr from-emerald-500/20 to-teal-500/0 blur-3xl animate-pulse" />
+                      <div className="w-64 h-64 rounded-full bg-gradient-to-tr from-emerald-500/20 to-teal-500/0 blur-3xl" />
                     )}
                   </div>
                 </div>
               </Link>
             )}
 
-            {/* ── SEARCH & CATEGORIES NAVIGATION ── */}
-            <div className="pt-6 space-y-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 dark:border-gray-900 pb-3">
-                
-                {/* Categories Scrollable Bar */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-2 -mb-5 pr-4 no-scrollbar scroll-smooth">
+            {/* ── FILTER CHIPS NAVIGATION & RSS ── */}
+            <div className="pt-6">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 -mb-4 pr-4 scroll-smooth no-scrollbar">
                   {CATEGORIES.map(cat => (
                     <button
                       key={cat}
                       onClick={() => setActiveCategory(cat)}
-                      className={`px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap ${
+                      className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all whitespace-nowrap ${
                         activeCategory === cat
-                          ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm'
-                          : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-900'
+                          ? 'bg-black text-white'
+                          : 'text-gray-500 hover:text-black hover:bg-gray-100'
                       }`}
                     >
                       {cat}
                     </button>
                   ))}
                 </div>
-
-                {/* Search bar */}
-                <div className="relative w-full md:w-80 shrink-0">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={17} />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Search articles..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-800 rounded-full bg-gray-50 dark:bg-gray-900/50 text-sm focus:ring-2 focus:ring-emerald-500 outline-none text-gray-950 dark:text-white"
-                  />
-                </div>
+                
+                <a href="https://usekasi.com/blog/feed" className="text-gray-400 hover:text-black transition-colors pb-1.5" title="RSS Feed">
+                  <Rss size={16} />
+                </a>
               </div>
             </div>
 
-            {/* ── ARTICLES GRID ── */}
+            {/* ── GRID OF OTHER ARTICLES ── */}
             {filteredPosts.length === 0 ? (
-              <div className="text-center py-20 bg-gray-50 dark:bg-gray-900/20 rounded-3xl border border-gray-100 dark:border-gray-900">
+              <div className="text-center py-20 bg-gray-50 rounded-3xl border border-gray-100">
                 <BookOpen className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-500 dark:text-gray-400 font-medium">No articles found matching this selection.</p>
+                <p className="text-gray-500 font-medium">No articles found matching this category.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-4">
-                {/* If there's only 1 post, show it in the grid too, but if more, the first was hero */}
                 {(posts.length === 1 || activeCategory !== 'All articles' || searchQuery !== '' ? filteredPosts : gridPosts).map((post) => (
                   <Link 
                     key={post.id} 
                     to={`/article/${post.slug}`}
-                    className="group flex flex-col bg-white dark:bg-gray-900/10 border border-gray-100 dark:border-gray-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01]"
+                    className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01]"
                   >
-                    {/* Card Cover Photo */}
-                    <div className="w-full aspect-video bg-gray-100 dark:bg-gray-900 overflow-hidden relative border-b border-gray-100/50 dark:border-gray-900">
+                    {/* Aspect Ratio Video Image Box */}
+                    <div className="w-full aspect-video bg-gray-50 overflow-hidden relative rounded-2xl border border-gray-100/50">
                       {post.featured_image ? (
                         <img 
                           src={post.featured_image} 
                           alt={post.title} 
-                          className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" 
+                          className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" 
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-700 bg-gradient-to-tr from-gray-50 to-emerald-50/20 dark:from-gray-900 dark:to-emerald-950/10">
-                          <BookOpen size={32} />
+                        <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gradient-to-tr from-gray-50 to-emerald-50/10">
+                          <BookOpen size={30} />
                         </div>
                       )}
                     </div>
 
-                    {/* Card Body */}
-                    <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                      <div className="space-y-2.5">
-                        <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                          <span>{post.category}</span>
-                          <span>•</span>
-                          <span className="text-gray-400">{post.read_time} min read</span>
+                    {/* Description Details */}
+                    <div className="py-5 flex-1 flex flex-col justify-between space-y-3">
+                      <div className="space-y-2">
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">
+                          {post.category}
                         </div>
-                        <h3 className="text-lg font-bold text-gray-950 dark:text-white line-clamp-2 leading-snug group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        <h3 className="text-lg font-bold text-gray-900 leading-snug group-hover:text-emerald-600 transition-colors">
                           {post.title}
                         </h3>
                         {post.summary && (
-                          <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 leading-relaxed">
+                          <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed">
                             {post.summary}
                           </p>
                         )}
                       </div>
 
-                      {/* Author row */}
-                      <div className="flex items-center gap-3 pt-4 border-t border-gray-50 dark:border-gray-900">
+                      {/* Author Details & Date */}
+                      <div className="flex items-center gap-3 pt-3">
                         {post.author_image ? (
-                          <img src={post.author_image} alt={post.author_name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                          <img src={post.author_image} alt={post.author_name} className="w-7 h-7 rounded-full object-cover shrink-0" />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs shrink-0">
                             {post.author_name.charAt(0)}
                           </div>
                         )}
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-gray-800 dark:text-gray-200 truncate">{post.author_name}</p>
-                          <p className="text-[10px] text-gray-400 truncate">{post.author_role}</p>
+                        <div className="min-w-0 flex-1 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-bold text-gray-800 leading-none">{post.author_name}</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">{post.author_role}</p>
+                          </div>
+                          <span className="text-[10px] text-gray-400 font-medium">{formatDate(post.published_at || post.created_at)}</span>
                         </div>
                       </div>
                     </div>
@@ -319,48 +315,177 @@ const Home = () => {
         )}
       </main>
 
-      {/* ── CTA BANNER FOOTER ── */}
-      <section className="bg-gray-950 text-white py-16 border-t border-gray-900 mt-20">
-        <div className="max-w-4xl mx-auto px-6 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
-            ⚡ Powered by AI
-          </div>
-          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-            Grow your business with Kasi AI Sales Assistant
-          </h2>
-          <p className="text-gray-400 max-w-xl mx-auto leading-relaxed">
-            Automate invoice creation, WhatsApp conversations, payout splits, and logistics routing. Join thousands of African merchants today.
-          </p>
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a 
-              href="https://usekasi.com/signup" 
-              className="w-full sm:w-auto px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-950 transition-all hover:scale-102 flex items-center justify-center gap-2"
-            >
-              Get Started for Free <ArrowRight size={18} />
-            </a>
-            <a 
-              href="https://usekasi.com" 
-              className="w-full sm:w-auto px-8 py-3.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl font-bold transition-all"
-            >
-              Learn More
-            </a>
-          </div>
-        </div>
-      </section>
+      {/* ── NEUBRUTALIST REBRAND DARK FOOTER (Identical to usekasi.com main site) ── */}
+      <footer className="bg-[#0A0A0A] text-[#9ca3af] py-20 font-sans select-none text-left border-t border-black">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-16 items-start">
+            {/* Column 1 — Brand */}
+            <div className="lg:col-span-4 space-y-5">
+              <span className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                <img
+                  src="/kasi.png"
+                  alt="Kasi"
+                  className="w-6 h-6 object-contain shrink-0 select-none"
+                />
+                <span>Kasi AI</span>
+              </span>
+              <p className="text-[15px] text-white/55 leading-relaxed font-medium max-w-xs mt-4">
+                Your AI sales agent that never sleeps.
+              </p>
+            </div>
 
-      {/* ── FOOTER ── */}
-      <footer className="bg-gray-950 text-gray-500 text-xs border-t border-white/5 py-8">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <img src="/kasi.png" alt="Kasi Logo" className="h-5 w-auto" />
-            <span>&copy; {new Date().getFullYear()} Kasi HQ. All rights reserved.</span>
+            {/* Column 2 — PRODUCT */}
+            <div className="lg:col-span-3 space-y-4">
+              <h4 className="text-[12px] font-bold text-white/40 uppercase tracking-widest">
+                PRODUCT
+              </h4>
+              <ul className="space-y-3 text-[15px] font-medium">
+                <li>
+                  <a href="https://usekasi.com#dms" className="text-white/70 hover:text-white transition-colors">
+                    Direct Messages
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com#invoices" className="text-white/70 hover:text-white transition-colors">
+                    Invoices & Payments
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com#negotiation" className="text-white/70 hover:text-white transition-colors">
+                    Negotiations
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com#logistics" className="text-white/70 hover:text-white transition-colors">
+                    Logistics
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com#bookings" className="text-white/70 hover:text-white transition-colors">
+                    Booking & Scheduling
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com#customer-intelligence" className="text-white/70 hover:text-white transition-colors">
+                    Customer Intelligence
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com#pricing" className="text-white/70 hover:text-white transition-colors">
+                    Pricing
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3 — INTEGRATIONS */}
+            <div className="lg:col-span-3 space-y-4">
+              <h4 className="text-[12px] font-bold text-white/40 uppercase tracking-widest">
+                INTEGRATIONS
+              </h4>
+              <ul className="space-y-3 text-[15px] font-medium text-white/70">
+                <li>
+                  <a href="https://usekasi.com" className="hover:text-white transition-colors">
+                    WhatsApp API
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com" className="hover:text-white transition-colors">
+                    Instagram DMs
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com" className="hover:text-white transition-colors">
+                    Facebook Messenger
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com" className="hover:text-white transition-colors">
+                    Telegram
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com" className="hover:text-white transition-colors">
+                    Paystack
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com" className="hover:text-white transition-colors">
+                    Google Calendar
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 4 — COMPANY */}
+            <div className="lg:col-span-2 space-y-4">
+              <h4 className="text-[12px] font-bold text-white/40 uppercase tracking-widest">
+                COMPANY
+              </h4>
+              <ul className="space-y-3 text-[15px] font-medium text-white/70">
+                <li>
+                  <a href="https://usekasi.com" className="hover:text-white transition-colors">
+                    About Endogenous
+                  </a>
+                </li>
+                <li>
+                  <a href="https://blog.usekasi.com" className="hover:text-white transition-colors">
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com" className="hover:text-white transition-colors">
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com/privacy" className="hover:text-white transition-colors">
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com/terms" className="hover:text-white transition-colors">
+                    Terms of Service
+                  </a>
+                </li>
+                <li>
+                  <a href="https://usekasi.com/data-deletion" className="hover:text-white transition-colors">
+                    Data Deletion
+                  </a>
+                </li>
+                <li>
+                  <a href="mailto:support@usekasi.com" className="hover:text-white transition-colors">
+                    Contact
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
-          <div className="flex items-center gap-6">
-            <a href="https://usekasi.com/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="https://usekasi.com/terms" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="https://usekasi.com/blog/feed" className="hover:text-white transition-colors flex items-center gap-1">
-              <Rss size={12} /> RSS Feed
-            </a>
+
+          {/* Bottom Bar */}
+          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <span className="text-[13px] text-white/40 font-medium">
+              © 2026 Endogenous Technologies. All rights reserved.
+            </span>
+
+            {/* Social icons */}
+            <div className="flex items-center gap-3">
+              {[
+                { icon: <Instagram size={16} />, url: "https://www.instagram.com/official_kasi247/" },
+                { icon: <Twitter size={16} />, url: "https://x.com/hq_kasi" },
+                { icon: <Linkedin size={16} />, url: "https://www.linkedin.com/company/122863967/" },
+              ].map((soc, idx) => (
+                <a
+                  key={idx}
+                  href={soc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:border-white transition-all"
+                >
+                  {soc.icon}
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </footer>
