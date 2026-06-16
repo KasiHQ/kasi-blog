@@ -269,9 +269,9 @@ const ArticleDetail = () => {
       {/* ── HEADER ── */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-[1200px] mx-auto px-6 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5 py-2 group">
-            <img src="/kasi.png" alt="Kasi Logo" className="h-9 w-auto object-contain" />
-            <span className="text-2xl font-extrabold tracking-tight text-gray-900 font-sans select-none">
+          <Link to="/" className="flex items-center gap-2 py-2 group">
+            <img src="/kasi.png" alt="Kasi Logo" className="h-8 md:h-9 w-auto object-contain" />
+            <span className="text-xl md:text-2xl font-extrabold tracking-tight text-gray-900 font-sans select-none">
               kasi <span className="text-emerald-600 font-medium">blog</span>
             </span>
           </Link>
