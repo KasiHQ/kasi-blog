@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ArrowUpRight, Linkedin, Twitter, Link2, Clock, Loader2, AlertTriangle, Instagram, Rss } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Linkedin, Twitter, Link2, Clock, Loader2, AlertTriangle, Instagram, Rss } from 'lucide-react';
 import api from '../api';
 
 // Simple Markdown to HTML parser
