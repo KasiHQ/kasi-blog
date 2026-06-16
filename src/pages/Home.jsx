@@ -79,6 +79,19 @@ const Home = () => {
     });
   }, []);
 
+  useEffect(() => {
+    const handleExternalLinks = () => {
+      const links = document.querySelectorAll('a[href^="https://usekasi.com"]');
+      links.forEach(link => {
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+      });
+    };
+    handleExternalLinks();
+    const timer = setTimeout(handleExternalLinks, 500);
+    return () => clearTimeout(timer);
+  }, [posts]);
+
   const filteredPosts = posts.filter(post => {
     const matchesCategory = activeCategory === 'All articles' || 
       post.category.toLowerCase() === activeCategory.toLowerCase();

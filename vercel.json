@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/article/:slug",
+      "destination": "/api/serve?slug=:slug"
+    },
+    {
       "source": "/((?!assets/|.*\\..*$).*)",
       "destination": "/index.html"
     }
