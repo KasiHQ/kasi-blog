@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
+import fs from 'fs';
+import path from 'path';
+import axios from 'axios';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   const { slug } = req.query;
   const apiUrl = process.env.VITE_API_URL || 'https://api.usekasi.com';
   
