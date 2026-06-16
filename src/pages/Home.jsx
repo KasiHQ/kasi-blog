@@ -305,7 +305,7 @@ const Home = () => {
 
                     {/* Summary Snippet */}
                     {heroPost.summary && (
-                      <p className="text-gray-350 leading-relaxed text-sm md:text-base line-clamp-3 font-medium">
+                      <p className="text-gray-300 leading-relaxed text-sm md:text-base line-clamp-3 font-medium">
                         {heroPost.summary}
                       </p>
                     )}
