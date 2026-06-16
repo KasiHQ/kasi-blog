@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Linkedin, Twitter, Link2, Clock, Loader2, AlertTriangle, Instagram, Rss } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Linkedin, Twitter, Link2, Clock, Loader2, AlertTriangle, Instagram, Rss, BookOpen } from 'lucide-react';
 import api from '../api';
 
 // Simple Markdown to HTML parser
@@ -240,16 +240,7 @@ const ArticleDetail = () => {
     });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col justify-center items-center">
-        <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
-        <p className="text-sm text-gray-500 font-semibold uppercase tracking-wider mt-4">Loading article...</p>
-      </div>
-    );
-  }
-
-  if (error || !post) {
+  if (error || (!loading && !post)) {
     return (
       <div className="min-h-screen bg-white flex flex-col justify-center items-center px-6 text-center space-y-4">
         <AlertTriangle className="w-12 h-12 text-red-500" />
@@ -262,15 +253,15 @@ const ArticleDetail = () => {
     );
   }
 
-  const headings = extractHeadings(post.content);
+  const headings = post ? extractHeadings(post.content) : [];
 
   // Filter out current post to get related articles (take 2)
-  const relatedArticles = allPosts
-    .filter(p => p.id !== post.id)
-    .slice(0, 2);
+  const relatedArticles = post
+    ? allPosts.filter(p => p.id !== post.id).slice(0, 2)
+    : [];
 
   // Social share URLs
-  const shareTitle = encodeURIComponent(post.title);
+  const shareTitle = post ? encodeURIComponent(post.title) : '';
   const shareUrl = encodeURIComponent(window.location.href);
   const linkedinShare = `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`;
   const twitterShare = `https://twitter.com/intent/tweet?text=${shareTitle}&url=${shareUrl}`;
@@ -304,22 +295,101 @@ const ArticleDetail = () => {
           <ArrowLeft size={15} /> All articles
         </Link>
 
-        {/* Sub Header */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-emerald-600">
-            <span>{post.category}</span>
-            <span className="text-gray-300">/</span>
-            <span>{formatDate(post.published_at || post.created_at)}</span>
-          </div>
+        {loading ? (
+          <div className="space-y-8 animate-pulse">
+            {/* Sub Header Skeleton */}
+            <div className="space-y-4">
+              <div className="h-3.5 bg-gray-200 rounded w-40" />
+              <div className="space-y-3">
+                <div className="h-8 md:h-12 bg-gray-200 rounded w-3/4" />
+                <div className="h-8 md:h-12 bg-gray-200 rounded w-1/2" />
+              </div>
+              <div className="pt-1.5 pb-6 border-b border-gray-100">
+                <div className="h-3 bg-gray-200 rounded w-24" />
+              </div>
+            </div>
 
-          <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight max-w-4xl">
-            {post.title}
-          </h1>
+            {/* Column Grid Layout Skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-8 items-start">
+              
+              {/* LEFT COLUMN: STICKY AUTHOR & SHARING */}
+              <div className="lg:col-span-3 space-y-6 pt-2">
+                <div className="flex lg:flex-col items-center lg:items-start gap-3.5">
+                  <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-gray-200 shrink-0" />
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-250 rounded w-24" />
+                    <div className="h-3 bg-gray-200 rounded w-16" />
+                  </div>
+                </div>
 
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest pt-1.5 pb-6 border-b border-gray-100">
-            {post.read_time} MINUTES READ
+                <div className="space-y-3 pt-6 border-t border-gray-100">
+                  <div className="h-3 bg-gray-200 rounded w-28" />
+                  <div className="flex gap-2.5">
+                    {[1, 2, 3, 4].map(i => (
+                      <div key={i} className="w-8 h-8 rounded-full bg-gray-150" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* CENTER COLUMN: THE MAIN ARTICLE BODY */}
+              <div className="lg:col-span-6 space-y-8">
+                <div className="rounded-2xl overflow-hidden aspect-video bg-gray-150 w-full h-[400px]" />
+                
+                <div className="border-l-4 border-gray-300 bg-gray-50/70 border border-gray-200/80 rounded-2xl p-6 space-y-3">
+                  <div className="h-3 bg-gray-250 rounded w-20" />
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                    <div className="h-4 bg-gray-200 rounded w-5/6" />
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="space-y-2.5">
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                    <div className="h-4 bg-gray-200 rounded w-11/12" />
+                    <div className="h-4 bg-gray-200 rounded w-5/6" />
+                  </div>
+                  <div className="h-6 bg-gray-250 rounded w-1/3 pt-4" />
+                  <div className="space-y-2.5">
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: STICKY TABLE OF CONTENTS */}
+              <div className="lg:col-span-3 space-y-4 pl-3 hidden lg:block">
+                <div className="h-3 bg-gray-250 rounded w-24" />
+                <div className="border-l border-gray-150 pl-4 space-y-3">
+                  <div className="h-3 bg-gray-150 rounded w-3/4" />
+                  <div className="h-3 bg-gray-150 rounded w-1/2" />
+                  <div className="h-3 bg-gray-150 rounded w-2/3" />
+                  <div className="h-3 bg-gray-150 rounded w-3/5" />
+                </div>
+              </div>
+
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Sub Header */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-emerald-600">
+                <span>{post.category}</span>
+                <span className="text-gray-300">/</span>
+                <span>{formatDate(post.published_at || post.created_at)}</span>
+              </div>
+
+              <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight max-w-4xl">
+                {post.title}
+              </h1>
+
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest pt-1.5 pb-6 border-b border-gray-100">
+                {post.read_time} MINUTES READ
+              </div>
+            </div>
 
         {/* Column Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-8 items-start">
@@ -501,7 +571,9 @@ const ArticleDetail = () => {
             )}
           </div>
         </div>
-      </main>
+      </>
+    )}
+  </main>
 
       {/* ── NEUBRUTALIST REBRAND DARK FOOTER (Identical to usekasi.com main site) ── */}
       <footer className="bg-[#0A0A0A] text-[#9ca3af] py-20 font-sans select-none text-left border-t border-black">
