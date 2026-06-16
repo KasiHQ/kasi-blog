@@ -20,6 +20,7 @@ const Home = () => {
   const [activeCategory, setActiveCategory] = useState('All articles');
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchPosts = async () => {
     try {
@@ -92,6 +93,10 @@ const Home = () => {
     return () => clearTimeout(timer);
   }, [posts]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, searchQuery]);
+
   const filteredPosts = posts.filter(post => {
     const matchesCategory = activeCategory === 'All articles' || 
       post.category.toLowerCase() === activeCategory.toLowerCase();
@@ -106,6 +111,17 @@ const Home = () => {
 
   const heroPost = filteredPosts.length > 0 ? filteredPosts[0] : null;
   const gridPosts = filteredPosts.length > 1 ? filteredPosts.slice(1) : [];
+
+  const displayPosts = posts.length === 1 || activeCategory !== 'All articles' || searchQuery !== '' 
+    ? filteredPosts 
+    : gridPosts;
+
+  const postsPerPage = 15;
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  
+  const currentGridPosts = displayPosts.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(displayPosts.length / postsPerPage);
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -253,26 +269,30 @@ const Home = () => {
           </div>
         ) : (
           <>
-            {/* ── HERO POST (exactly matched to mockups) ── */}
+            {/* ── HERO POST ── */}
             {heroPost && (
               <Link 
                 to={`/article/${heroPost.slug}`}
-                className="group block relative rounded-3xl overflow-hidden shadow-xl transition-all duration-500 hover:shadow-2xl hover:scale-[1.002]"
+                className="group block relative rounded-3xl overflow-hidden shadow-xl transition-all duration-500 hover:shadow-2xl hover:scale-[1.002] min-h-[440px]"
               >
-                {/* Background Glow Design */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-gray-950 via-gray-900 to-emerald-950" />
-                
-                {heroPost.featured_image && (
-                  <div className="absolute inset-y-0 right-0 w-full md:w-1/2 opacity-20 md:opacity-40 bg-cover bg-center" style={{ backgroundImage: `url(${heroPost.featured_image})` }}>
-                    <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/80 to-transparent" />
-                  </div>
+                {/* Background Image / Glow */}
+                {heroPost.featured_image ? (
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.01]" 
+                    style={{ backgroundImage: `url(${heroPost.featured_image})` }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-tr from-gray-950 via-gray-900 to-emerald-950" />
                 )}
+                
+                {/* Left-to-Right / Bottom-to-Top Overlay for Readability */}
+                <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-gray-950/95 via-gray-950/70 to-transparent" />
                 
                 {/* Content Overlay */}
                 <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 p-8 md:p-14 min-h-[440px] items-center">
-                  <div className="md:col-span-7 space-y-6">
+                  <div className="md:col-span-8 space-y-6">
                     {/* Meta Info */}
-                    <div className="flex items-center gap-2.5 text-xs font-semibold text-gray-400">
+                    <div className="flex items-center gap-2.5 text-xs font-semibold text-gray-300">
                       <span>{formatDate(heroPost.published_at || heroPost.created_at)}</span>
                       <span>•</span>
                       <span>{heroPost.read_time} min read</span>
@@ -285,7 +305,7 @@ const Home = () => {
 
                     {/* Summary Snippet */}
                     {heroPost.summary && (
-                      <p className="text-gray-300 leading-relaxed text-sm md:text-base line-clamp-3 font-medium">
+                      <p className="text-gray-350 leading-relaxed text-sm md:text-base line-clamp-3 font-medium">
                         {heroPost.summary}
                       </p>
                     )}
@@ -295,26 +315,15 @@ const Home = () => {
                       {heroPost.author_image ? (
                         <img src={heroPost.author_image} alt={heroPost.author_name} className="w-10 h-10 rounded-full border border-white/10 object-cover" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-300 border border-emerald-500/30">
+                        <div className="w-10 h-10 rounded-full bg-emerald-550/20 flex items-center justify-center text-emerald-300 border border-emerald-550/30">
                           {heroPost.author_name.charAt(0)}
                         </div>
                       )}
                       <div>
                         <p className="text-sm font-bold text-white leading-none">{heroPost.author_name}</p>
-                        <p className="text-xs text-gray-400 mt-1">{heroPost.author_role}</p>
+                        <p className="text-xs text-gray-300 mt-1">{heroPost.author_role}</p>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* raised mockup card layout */}
-                  <div className="md:col-span-5 hidden md:flex justify-end items-center pl-6 h-full">
-                    {heroPost.featured_image ? (
-                      <div className="w-full max-w-[340px] rounded-2xl overflow-hidden shadow-2xl border border-white/10 transform translate-x-4 rotate-1 group-hover:translate-x-0 group-hover:rotate-0 transition-all duration-500">
-                        <img src={heroPost.featured_image} alt="Featured cover" className="w-full aspect-video object-cover" />
-                      </div>
-                    ) : (
-                      <div className="w-64 h-64 rounded-full bg-gradient-to-tr from-emerald-500/20 to-teal-500/0 blur-3xl" />
-                    )}
                   </div>
                 </div>
               </Link>
@@ -352,64 +361,110 @@ const Home = () => {
                 <p className="text-gray-500 font-medium">No articles found matching this category.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-4">
-                {(posts.length === 1 || activeCategory !== 'All articles' || searchQuery !== '' ? filteredPosts : gridPosts).map((post) => (
-                  <Link 
-                    key={post.id} 
-                    to={`/article/${post.slug}`}
-                    className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01]"
-                  >
-                    {/* Aspect Ratio Video Image Box */}
-                    <div className="w-full aspect-video bg-gray-50 overflow-hidden relative rounded-2xl border border-gray-100/50">
-                      {post.featured_image ? (
-                        <img 
-                          src={post.featured_image} 
-                          alt={post.title} 
-                          className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" 
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gradient-to-tr from-gray-50 to-emerald-50/10">
-                          <BookOpen size={30} />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Description Details */}
-                    <div className="py-5 flex-1 flex flex-col justify-between space-y-3">
-                      <div className="space-y-2">
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">
-                          {post.category}
-                        </div>
-                        <h3 className="text-lg font-bold text-gray-900 leading-snug group-hover:text-emerald-600 transition-colors">
-                          {post.title}
-                        </h3>
-                        {post.summary && (
-                          <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed">
-                            {post.summary}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Author Details & Date */}
-                      <div className="flex items-center gap-3 pt-3">
-                        {post.author_image ? (
-                          <img src={post.author_image} alt={post.author_name} className="w-7 h-7 rounded-full object-cover shrink-0" />
+              <div className="space-y-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-4">
+                  {currentGridPosts.map((post) => (
+                    <Link 
+                      key={post.id} 
+                      to={`/article/${post.slug}`}
+                      className="group flex flex-col bg-white rounded-2xl p-4 border border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01]"
+                    >
+                      {/* Aspect Ratio Video Image Box */}
+                      <div className="w-full aspect-video bg-gray-50 overflow-hidden relative rounded-xl border border-gray-100/50">
+                        {post.featured_image ? (
+                          <img 
+                            src={post.featured_image} 
+                            alt={post.title} 
+                            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" 
+                          />
                         ) : (
-                          <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs shrink-0">
-                            {post.author_name.charAt(0)}
+                          <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gradient-to-tr from-gray-50 to-emerald-50/10">
+                            <BookOpen size={30} />
                           </div>
                         )}
-                        <div className="min-w-0 flex-1 flex items-center justify-between">
-                          <div>
-                            <p className="text-xs font-bold text-gray-800 leading-none">{post.author_name}</p>
-                            <p className="text-[10px] text-gray-400 mt-0.5">{post.author_role}</p>
+                      </div>
+
+                      {/* Description Details */}
+                      <div className="pt-4 flex-1 flex flex-col justify-between space-y-3">
+                        <div className="space-y-2">
+                          <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">
+                            {post.category}
                           </div>
-                          <span className="text-[10px] text-gray-400 font-medium">{formatDate(post.published_at || post.created_at)}</span>
+                          <h3 className="text-lg font-bold text-gray-900 leading-snug group-hover:text-emerald-600 transition-colors line-clamp-2">
+                            {post.title}
+                          </h3>
+                          {post.summary && (
+                            <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed">
+                              {post.summary}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Author Details & Date */}
+                        <div className="flex items-center gap-3 pt-3 border-t border-gray-50">
+                          {post.author_image ? (
+                            <img src={post.author_image} alt={post.author_name} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs shrink-0">
+                              {post.author_name.charAt(0)}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1 flex items-center justify-between">
+                            <div>
+                              <p className="text-xs font-bold text-gray-800 leading-none">{post.author_name}</p>
+                              <p className="text-[10px] text-gray-400 mt-0.5">{post.author_role}</p>
+                            </div>
+                            <span className="text-[10px] text-gray-400 font-semibold">{formatDate(post.published_at || post.created_at)}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 pt-6 border-t border-gray-100">
+                    <button
+                      onClick={() => {
+                        setCurrentPage(prev => Math.max(prev - 1, 1));
+                        window.scrollTo({ top: 350, behavior: 'smooth' });
+                      }}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 text-xs font-bold border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                      Previous
+                    </button>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => {
+                          setCurrentPage(page);
+                          window.scrollTo({ top: 350, behavior: 'smooth' });
+                        }}
+                        className={`w-9 h-9 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                          currentPage === page
+                            ? 'bg-emerald-600 text-white border border-emerald-600'
+                            : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() => {
+                        setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                        window.scrollTo({ top: 350, behavior: 'smooth' });
+                      }}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 text-xs font-bold border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </>
