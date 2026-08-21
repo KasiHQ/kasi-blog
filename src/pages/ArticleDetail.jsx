@@ -117,6 +117,48 @@ const extractHeadings = (markdown) => {
   return headings;
 };
 
+const FOUNDER_ENTITIES = {
+  'omobolaji durojaiye': {
+    name: 'Omobolaji Durojaiye',
+    jobTitle: 'Co-Founder and CTO',
+    sameAs: [
+      'https://www.linkedin.com/in/omobolaji-durojaiye-527872294/',
+      'https://x.com/bjtolu'
+    ]
+  },
+  'temidayo aderibigbe': {
+    name: 'Temidayo Aderibigbe',
+    jobTitle: 'Co-Founder and CEO',
+    sameAs: [
+      'https://www.linkedin.com/in/temidayo-aderibigbe-897a1731b/'
+    ]
+  },
+  'euodia peleg': {
+    name: 'Euodia Peleg',
+    jobTitle: 'Co-Founder and CMO',
+    sameAs: [
+      'https://www.linkedin.com/in/euodia-peleg-388103415/'
+    ]
+  }
+};
+
+const resolveAuthorEntity = (authorName) => {
+  const norm = (authorName || '').toLowerCase().trim();
+  if (norm.includes('bolaji') || norm.includes('durojaiye')) {
+    return FOUNDER_ENTITIES['omobolaji durojaiye'];
+  }
+  if (norm.includes('temi') || norm.includes('aderibigbe')) {
+    return FOUNDER_ENTITIES['temidayo aderibigbe'];
+  }
+  if (norm.includes('euodia') || norm.includes('peleg')) {
+    return FOUNDER_ENTITIES['euodia peleg'];
+  }
+  return {
+    name: authorName || 'Omobolaji Durojaiye',
+    sameAs: ['https://www.linkedin.com/in/omobolaji-durojaiye-527872294/']
+  };
+};
+
 const ArticleDetail = () => {
   const { slug } = useParams();
   const [post, setPost] = useState(null);
@@ -146,7 +188,7 @@ const ArticleDetail = () => {
     }
   };
 
-  const updateMetaTags = (metadata) => {
+  const updateMetaTags = (metadata, currentPost) => {
     const { title, description, url, image, type = 'article', category, publishedTime, authorName } = metadata;
     document.title = title;
     
@@ -183,6 +225,42 @@ const ArticleDetail = () => {
       document.head.appendChild(canonical);
     }
     canonical.setAttribute('href', url);
+
+    // Dynamic Article Schema (JSON-LD)
+    if (currentPost) {
+      const authorEntity = resolveAuthorEntity(currentPost.author_name);
+      const articleSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        'headline': currentPost.title,
+        'description': currentPost.summary || currentPost.title,
+        'datePublished': currentPost.published_at || currentPost.created_at,
+        'dateModified': currentPost.updated_at || currentPost.published_at || currentPost.created_at,
+        'author': {
+          '@type': 'Person',
+          'name': authorEntity.name,
+          'sameAs': authorEntity.sameAs
+        },
+        'publisher': {
+          '@type': 'Organization',
+          'name': 'Kasi AI',
+          'logo': {
+            '@type': 'ImageObject',
+            'url': 'https://usekasi.com/kasi.png'
+          }
+        },
+        'mainEntityOfPage': url
+      };
+
+      let schemaScript = document.getElementById('article-jsonld');
+      if (!schemaScript) {
+        schemaScript = document.createElement('script');
+        schemaScript.id = 'article-jsonld';
+        schemaScript.type = 'application/ld+json';
+        document.head.appendChild(schemaScript);
+      }
+      schemaScript.textContent = JSON.stringify(articleSchema, null, 2);
+    }
   };
 
   useEffect(() => {
@@ -194,21 +272,24 @@ const ArticleDetail = () => {
         const el = document.querySelector(`meta[property="${prop}"]`);
         if (el) el.remove();
       });
+      const schemaScript = document.getElementById('article-jsonld');
+      if (schemaScript) schemaScript.remove();
     };
   }, [slug]);
 
   useEffect(() => {
     if (post) {
+      const canonicalUrl = `https://blog.usekasi.com/article/${post.slug}`;
       updateMetaTags({
         title: `${post.title} | Kasi Blog`,
         description: post.summary || 'Read the article on the Kasi Blog.',
-        url: window.location.href,
-        image: post.featured_image || `${window.location.origin}/kasi.png`,
+        url: canonicalUrl,
+        image: post.featured_image || 'https://usekasi.com/kasi.png',
         type: 'article',
         category: post.category,
         publishedTime: post.published_at || post.created_at,
         authorName: post.author_name
-      });
+      }, post);
     }
   }, [post]);
 
